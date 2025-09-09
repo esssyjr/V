@@ -3,23 +3,18 @@ import io
 import os
 import wave
 import traceback
-
 from fastapi import FastAPI, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 from google.cloud import texttospeech
-from pydub import AudioSegment  # Handles conversions (m4a → wav, etc.)
+from pydub import AudioSegment 
 
-# ======================
+
 # GOOGLE CLOUD CREDS
-# ======================
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/sapient-logic-470202-h4-d06474e2edd1.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/your_file_name.json"
 
-
-# ======================
 # LANGUAGE OPTIONS
-# ======================
 language_options = {
     "English (US)": ("en", "en-US"),
     "French (France)": ("fr", "fr-FR"),
@@ -40,9 +35,7 @@ language_options = {
     "Chinese (Simplified)": ("zh", "cmn-Hans-CN"),
 }
 
-# ======================
 # UTIL FUNCTIONS
-# ======================
 def convert_to_wav(input_file, output_file="converted.wav"):
     try:
         audio = AudioSegment.from_file(input_file)
@@ -112,15 +105,13 @@ def text_to_speech_file(text, language_code="en-US", filename="output.wav"):
         traceback.print_exc()
         raise
 
-# ======================
 # FASTAPI APP
-# ======================
-app = FastAPI(title="🌍 Modular Speech Translator API")
+app = FastAPI(title="STT,TTS & TRANSLATION")
 
 @app.get("/")
 def root():
     return {
-        "message": "Welcome to the Speech Translator API",
+        "message": "Welcome to the STT,TTS & TRANSLATION API",
         "available_endpoints": ["/stt", "/translate", "/tts"]
     }
 
