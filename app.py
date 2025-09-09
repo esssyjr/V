@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 from google.cloud import texttospeech
-from pydub import AudioSegment  # Now safe to import
+from pydub import AudioSegment  # Safe to import now
 
 # ======================
 # GOOGLE CLOUD CREDS
