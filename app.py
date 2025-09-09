@@ -6,8 +6,8 @@ import wave
 # ======================
 # PATCH FOR PYTHON 3.13
 # ======================
-import audioop_lts
-sys.modules["audioop"] = audioop_lts  # Provide audioop back to pydub
+import audioop-lts
+sys.modules["audioop"] = audioop-lts  # Provide audioop back to pydub
 
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.responses import JSONResponse
