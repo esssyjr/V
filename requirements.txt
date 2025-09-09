@@ -6,3 +6,4 @@ google-cloud-texttospeech
 pydantic
 python-multipart
 pydub
+audioop-lts
