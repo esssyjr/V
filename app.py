@@ -14,7 +14,8 @@ from pydub import AudioSegment  # Handles conversions (m4a → wav, etc.)
 # ======================
 # GOOGLE CLOUD CREDS
 # ======================
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "sapient-logic-470202-h4-7662fe9208aa.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/sapient-logic-470202-h4-7662fe9208aa.json"
+
 
 # ======================
 # LANGUAGE OPTIONS
