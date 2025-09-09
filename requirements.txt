@@ -5,3 +5,4 @@ google-cloud-translate
 google-cloud-texttospeech
 pydantic
 python-multipart
+pydub
