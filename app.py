@@ -1,12 +1,20 @@
+import sys
 import io
 import os
 import wave
+
+# ======================
+# PATCH FOR PYTHON 3.13
+# ======================
+import audioop_lts
+sys.modules["audioop"] = audioop_lts  # Provide audioop back to pydub
+
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.responses import JSONResponse
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 from google.cloud import texttospeech
-from pydub import AudioSegment  # NEW: for audio conversion
+from pydub import AudioSegment  # Now safe to import
 
 # ======================
 # GOOGLE CLOUD CREDS
@@ -14,7 +22,7 @@ from pydub import AudioSegment  # NEW: for audio conversion
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "sapient-logic-470202-h4-7662fe9208aa.json"
 
 # ======================
-# LANGUAGE OPTIONS (STT + TTS + Translation supported)
+# LANGUAGE OPTIONS
 # ======================
 language_options = {
     "English (US)": ("en", "en-US"),
@@ -96,47 +104,39 @@ app = FastAPI(title="🌍 Modular Speech Translator API")
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the Speech Translator API", "available_endpoints": ["/stt", "/translate", "/tts"]}
+    return {
+        "message": "Welcome to the Speech Translator API",
+        "available_endpoints": ["/stt", "/translate", "/tts"]
+    }
 
-# ======================
-# STT (Speech → Text)
-# ======================
 @app.post("/stt")
 async def stt(audio: UploadFile, source_lang: str = Form(...)):
     if source_lang not in language_options:
         return JSONResponse(status_code=400, content={"error": "Unsupported source language."})
-    
+
     source_lang_code = language_options[source_lang][1]
     temp_audio = "input_" + audio.filename
     with open(temp_audio, "wb") as f:
         f.write(await audio.read())
 
-    # Convert uploaded file (m4a/mp3/wav) → wav for Google
     wav_file = convert_to_wav(temp_audio)
-
     text = speech_to_text(wav_file, language_code=source_lang_code)
     return {"recognized_text": text}
 
-# ======================
-# Translation (Text → Text)
-# ======================
 @app.post("/translate")
 async def translation(text: str = Form(...), target_lang: str = Form(...)):
     if target_lang not in language_options:
         return JSONResponse(status_code=400, content={"error": "Unsupported target language."})
-    
+
     target_lang_short, _ = language_options[target_lang]
     translated_text = translate_text(text, target_lang_short)
     return {"translated_text": translated_text}
 
-# ======================
-# TTS (Text → Speech)
-# ======================
 @app.post("/tts")
 async def tts(text: str = Form(...), target_lang: str = Form(...)):
     if target_lang not in language_options:
         return JSONResponse(status_code=400, content={"error": "Unsupported target language."})
-    
+
     _, target_lang_code = language_options[target_lang]
     output_audio = text_to_speech_file(text, language_code=target_lang_code)
     return {"audio_file": output_audio}
