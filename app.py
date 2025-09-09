@@ -3,18 +3,12 @@ import io
 import os
 import wave
 
-# ======================
-# PATCH FOR PYTHON 3.13
-# ======================
-import audioop_lts
-sys.modules["audioop"] = audioop_lts  # Provide audioop back to pydub
-
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.responses import JSONResponse
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 from google.cloud import texttospeech
-from pydub import AudioSegment  # Safe to import now
+from pydub import AudioSegment  # Handles conversions (m4a → wav, etc.)
 
 # ======================
 # GOOGLE CLOUD CREDS
@@ -48,7 +42,7 @@ language_options = {
 # UTIL FUNCTIONS
 # ======================
 def convert_to_wav(input_file, output_file="converted.wav"):
-    """Convert any audio file to 16kHz mono PCM WAV"""
+    """Convert any audio file (e.g., m4a, mp3) to 16kHz mono PCM WAV"""
     audio = AudioSegment.from_file(input_file)
     audio = audio.set_frame_rate(16000).set_channels(1).set_sample_width(2)
     audio.export(output_file, format="wav")
@@ -119,7 +113,7 @@ async def stt(audio: UploadFile, source_lang: str = Form(...)):
     with open(temp_audio, "wb") as f:
         f.write(await audio.read())
 
-    wav_file = convert_to_wav(temp_audio)
+    wav_file = convert_to_wav(temp_audio)  # handles m4a/mp3/etc.
     text = speech_to_text(wav_file, language_code=source_lang_code)
     return {"recognized_text": text}
 
