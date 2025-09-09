@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from google.cloud import speech
 from google.cloud import translate_v2 as translate
 from google.cloud import texttospeech
+from pydub import AudioSegment  # NEW: for audio conversion
 
 # ======================
 # GOOGLE CLOUD CREDS
@@ -38,6 +39,13 @@ language_options = {
 # ======================
 # UTIL FUNCTIONS
 # ======================
+def convert_to_wav(input_file, output_file="converted.wav"):
+    """Convert any audio file to 16kHz mono PCM WAV"""
+    audio = AudioSegment.from_file(input_file)
+    audio = audio.set_frame_rate(16000).set_channels(1).set_sample_width(2)
+    audio.export(output_file, format="wav")
+    return output_file
+
 def speech_to_text(audio_file, language_code="en-US"):
     client = speech.SpeechClient()
     with io.open(audio_file, "rb") as f:
@@ -99,11 +107,14 @@ async def stt(audio: UploadFile, source_lang: str = Form(...)):
         return JSONResponse(status_code=400, content={"error": "Unsupported source language."})
     
     source_lang_code = language_options[source_lang][1]
-    temp_audio = "input.wav"
+    temp_audio = "input_" + audio.filename
     with open(temp_audio, "wb") as f:
         f.write(await audio.read())
 
-    text = speech_to_text(temp_audio, language_code=source_lang_code)
+    # Convert uploaded file (m4a/mp3/wav) → wav for Google
+    wav_file = convert_to_wav(temp_audio)
+
+    text = speech_to_text(wav_file, language_code=source_lang_code)
     return {"recognized_text": text}
 
 # ======================
